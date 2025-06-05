@@ -29,23 +29,3 @@ apiService.interceptors.response.use(
 );
 
 export default apiService;
-
-export const productService = {
-  // Get all products
-  getAllProducts: () => apiService.get('/products'),
-  
-  // Get products by category
-  getProductsByCategory: (category) => apiService.get(`/products/category/${category}`),
-  
-  // Add new product
-  addProduct: (product) => apiService.post('/products', product),
-  
-  // Update product
-  updateProduct: (id, product) => apiService.put(`/products/${id}`, product),
-  
-  // Delete product
-  deleteProduct: (id) => apiService.delete(`/products/${id}`),
-  
-  // Get all categories
-  getCategories: () => apiService.get('/products/categories'),
-}; 
