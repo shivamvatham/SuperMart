@@ -12,49 +12,25 @@
         <div class="form-grid">
           <div class="form-group">
             <label for="title">Title</label>
-            <input
-              id="title"
-              v-model="formData.title"
-              type="text"
-              required
-              class="form-input"
-              placeholder="Enter product title"
-            />
+            <input id="title" v-model="formData.title" type="text" required class="form-input"
+              placeholder="Enter product title" />
           </div>
           <div class="form-group">
             <label for="price">Price (₹)</label>
             <div class="input-with-symbol">
               <span class="symbol">₹</span>
-              <input
-                id="price"
-                v-model.number="formData.price"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                class="form-input"
-                placeholder="0.00"
-              />
+              <input id="price" v-model.number="formData.price" type="number" step="0.01" min="0" required
+                class="form-input" placeholder="0.00" />
             </div>
           </div>
           <div class="form-group">
             <label for="description">Description</label>
-            <textarea
-              id="description"
-              v-model="formData.description"
-              required
-              class="form-input"
-              placeholder="Enter detailed product description"
-            ></textarea>
+            <textarea id="description" v-model="formData.description" required class="form-input"
+              placeholder="Enter detailed product description"></textarea>
           </div>
           <div class="form-group">
             <label for="category">Category</label>
-            <select
-              id="category"
-              v-model="formData.category"
-              required
-              class="form-input"
-            >
+            <select id="category" v-model="formData.category" required class="form-input">
               <option value="" disabled selected>Select a category</option>
               <option v-for="category in categories" :key="category" :value="category">
                 {{ category }}
@@ -63,17 +39,12 @@
           </div>
           <div class="form-group full-width">
             <label for="image">Image URL</label>
-            <input
-              id="image"
-              v-model="formData.image"
-              type="url"
-              required
-              class="form-input"
-              placeholder="https://example.com/image.jpg"
-            />
+            <input id="image" v-model="formData.image" type="url" required class="form-input"
+              placeholder="https://example.com/image.jpg" @blur="validateImage" />
             <div v-if="formData.image" class="image-preview">
-              <img :src="formData.image" alt="Product preview" @error="handleImageError" />
-              <span v-if="!imageValid" class="error-text">Invalid image URL</span>
+              <img :src="formData.image" alt="Product preview" @load="handleImageLoad" @error="handleImageError" />
+              <span v-if="imageLoading" class="loading-text">Loading image...</span>
+              <span v-else-if="!imageValid" class="error-text">Invalid image URL</span>
             </div>
           </div>
         </div>
@@ -115,6 +86,7 @@ export default {
   setup(props, { emit }) {
     const formData = ref({ ...props.product });
     const imageValid = ref(true);
+    const imageLoading = ref(false);
     const isEditing = computed(() => !!props.product && !!props.product.id);
 
     watch(
@@ -125,12 +97,42 @@ export default {
       { immediate: true, deep: true }
     );
 
+    const validateImage = () => {
+      if (!formData.value.image) {
+        imageValid.value = false;
+        return;
+      }
+
+      imageLoading.value = true;
+      imageValid.value = false;
+
+      const img = new Image();
+      img.onload = () => {
+        imageValid.value = true;
+        imageLoading.value = false;
+      };
+      img.onerror = () => {
+        imageValid.value = false;
+        imageLoading.value = false;
+      };
+      img.src = formData.value.image;
+    };
+
+    const handleImageLoad = () => {
+      imageValid.value = true;
+      imageLoading.value = false;
+    };
+
     const handleImageError = () => {
       imageValid.value = false;
+      imageLoading.value = false;
     };
 
     const handleSubmit = () => {
-      if (!imageValid.value) return;
+      if (!imageValid.value) {
+        alert('Please provide a valid image URL');
+        return;
+      }
       emit('submit', { ...formData.value });
     };
 
@@ -138,8 +140,11 @@ export default {
       formData,
       isEditing,
       imageValid,
+      imageLoading,
       handleSubmit,
-      handleImageError
+      handleImageError,
+      handleImageLoad,
+      validateImage
     };
   }
 };
@@ -147,4 +152,3 @@ export default {
 <style scoped>
 @import '@/assets/productForm.css';
 </style>
-
