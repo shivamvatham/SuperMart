@@ -139,7 +139,6 @@
 <script>
 import { ref, computed } from 'vue';
 import { useWindowSize } from '@vueuse/core';
-import apiService from '../services/api';
 
 export default {
   name: 'ProductList',

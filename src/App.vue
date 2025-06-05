@@ -36,6 +36,11 @@
       @confirm="confirmDelete"
       @cancel="cancelDelete"
     />
+
+    <SnackbarMessage
+      :message="snackbarMessage"
+      :type="snackbarType"
+    />
   </div>
 </template>
 
@@ -44,15 +49,18 @@ import { ref, onMounted } from 'vue';
 import ProductList from '@/components/ProductList.vue';
 import ProductForm from '@/components/ProductForm.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import SnackbarMessage from '@/components/SnackbarMessage.vue';
 import apiService from '@/services/api';
 import '@/assets/main.css'; 
+import '@/assets/snackbar.css';
 
 export default {
   name: 'App',
   components: {
     ProductList,
     ProductForm,
-    ConfirmDialog
+    ConfirmDialog,
+    SnackbarMessage
   },
   setup() {
     const products = ref([]);
@@ -61,6 +69,8 @@ export default {
     const selectedProduct = ref(null);
     const showConfirm = ref(false);
     const productToDelete = ref(null);
+    const snackbarMessage = ref('');
+    const snackbarType = ref('success');
 
     const fetchProducts = async () => {
       try {
@@ -99,8 +109,12 @@ export default {
       try {
         await apiService.delete(`/products/${productToDelete.value}`);
         products.value = products.value.filter(p => p.id !== productToDelete.value);
+        snackbarMessage.value = 'Product deleted successfully!';
+        snackbarType.value = 'success';
       } catch (error) {
         console.error('Error deleting product:', error);
+        snackbarMessage.value = 'Error deleting product.';
+        snackbarType.value = 'error';
       } finally {
         showConfirm.value = false;
         productToDelete.value = null;
@@ -118,13 +132,19 @@ export default {
           const response = await apiService.put(`/products/${selectedProduct.value.id}`, formData);
           const index = products.value.findIndex(p => p.id === selectedProduct.value.id);
           products.value[index] = response.data;
+          snackbarMessage.value = 'Product updated successfully!';
+          snackbarType.value = 'success';
         } else {
           const response = await apiService.post('/products', formData);
           products.value.push(response.data);
+          snackbarMessage.value = 'Product added successfully!';
+          snackbarType.value = 'success';
         }
         closeForm();
       } catch (error) {
         console.error('Error saving product:', error);
+        snackbarMessage.value = 'Error saving product.';
+        snackbarType.value = 'error';
       }
     };
 
@@ -151,7 +171,9 @@ export default {
       confirmDelete,
       cancelDelete,
       handleFormSubmit,
-      closeForm
+      closeForm,
+      snackbarMessage,
+      snackbarType
     };
   }
 };
